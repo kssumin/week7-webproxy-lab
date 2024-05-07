@@ -124,11 +124,23 @@ void serve_static(int fd, char *filename, int filesize)
     printf("%s", buf);
 
     // 읽기 전용으로 파일을 연다
-    srcfd = Open(filename, O_RDONLY, 0);   
-    srcp = Mmap(0, filesize, PROT_READ, MAP_PRIVATE, srcfd, 0);
+    // 프로세스에서 파일을 열때 사용
+    srcfd = Open(filename, O_RDONLY, 0);
+
+    // 11.9 연습문제 malloc , mmap 차이점
+
+    // srcp = Mmap(0, filesize, PROT_READ, MAP_PRIVATE, srcfd, 0);
+    srcp = (char *)malloc(MAXBUF);
+
+    // 파일 디스크립터의 내용을 읽어서 버퍼에 저장한다
+    read(srcfd, srcp, filesize);
+
     Close(srcfd);
     Rio_writen(fd, srcp, filesize);
-    Munmap(srcp, filesize);      
+
+    // 매핑된 물리 메모리 해제
+    // Munmap(srcp, filesize);
+    free(srcp); 
 }
 
 void get_filetype(char *filename, char *filetype) 
